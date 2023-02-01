@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useGetRacesQuery, useInvalidateRacesMutation } from '../services/races'
@@ -11,7 +11,7 @@ import { useEntainDispatch } from '../redux/store'
 import { displaySnackbar } from '../redux/appSlice'
 
 const Home = () => {
-  const {data: racesData, error} = useGetRacesQuery()
+  const {data: racesData, error, isLoading} = useGetRacesQuery()
   const [invalidateRacesData] = useInvalidateRacesMutation()
   const [displayRaces, setDisplayRaces] = useState<(Types.Summary | undefined)[]>([])
   const [selectedCategories, setSelectedCategories] = useState<Types.Category[]>(categories)
@@ -79,10 +79,11 @@ const Home = () => {
         <CategoryHeader
           onSelect={categorySelecAction}
           selectedCategories={selectedCategories}/>
+        {!isLoading ? 
         <View style={styles.racesContainer}>
           {renderRaces()}
-        </View>
-
+        </View> :
+        <ActivityIndicator size={'large'} style={{marginTop: 20}}/>}
       </View>
     </SafeAreaView>
   )
