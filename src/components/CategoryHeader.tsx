@@ -1,25 +1,15 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React, {useState} from 'react'
-import HorseCategoryIcon from '../../assets/icons/HorseCategoryIcon'
+import { StyleSheet, View, TouchableOpacity } from 'react-native'
+import React from 'react'
 import SelectButton from './SelectButton'
 import { Types } from '../utils/Types'
 import { categories } from '../utils/Arrays'
-import GreyhoundCategoryIcon from '../../assets/icons/GreyhoundCategoryIcon'
-import HarnessCategoryIcon from '../../assets/icons/HarnessCategoryIcon'
+import { getCategoryImage } from '../utils/getCategoryImage'
 
 type Props = {
     selectedCategories: Types.Category[]
     onSelect: (category: Types.Category, isRemoveFromList: boolean) => void
 }
 const CategoryHeader = ({selectedCategories, onSelect}: Props) => {
-
-    const getCategoryImage = (category: Types.Category) => {
-        switch(category.name){
-            case "Greyhound": return <View style={{width: 50, height: 50}}><GreyhoundCategoryIcon/></View>
-            case "Horse": return <View style={{width: 50, height: 50}}><HorseCategoryIcon/></View>
-            case "Harness": return <View style={{width: 50, height: 50}}><HarnessCategoryIcon/></View>
-        }
-    }
 
     const renderCategories = () => {
         return categories.map((category, index) => {
@@ -31,7 +21,7 @@ const CategoryHeader = ({selectedCategories, onSelect}: Props) => {
                 onPress={() => onSelect(category, isSelected)}>
                 <SelectButton
                     isSelected={isSelected}/>
-                {getCategoryImage(category)}
+                {getCategoryImage({category: category.id})}
             </TouchableOpacity>
             )
         })

@@ -1,26 +1,24 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useLazyGetRacesQuery } from '../services/races'
+import { useGetRacesQuery, useInvalidateRacesMutation } from '../services/races'
 import RacesCard from '../components/RacesCard'
 import moment from 'moment'
 import { Types } from '../utils/Types'
 import CategoryHeader from '../components/CategoryHeader'
 import { categories } from '../utils/Arrays'
 
-
 const Home = () => {
-  const [getRacesData] = useLazyGetRacesQuery()
+  const {data: racesData} = useGetRacesQuery()
+  const [invalidateRacesData] = useInvalidateRacesMutation()
   const [displayRaces, setDisplayRaces] = useState<(Types.Summary | undefined)[]>([])
   const [selectedCategories, setSelectedCategories] = useState<Types.Category[]>(categories)
 
   useEffect(() => {
     formatDisplayRaceData()
-  },[selectedCategories])
+  },[selectedCategories, racesData])
 
   const formatDisplayRaceData = async () => {
-    try {
-      const racesData = await getRacesData().unwrap()
       if (!racesData) return
       const raceSummaries = racesData?.data.race_summaries
       const raceIds = racesData.data.next_to_go_ids
@@ -30,14 +28,12 @@ const Home = () => {
         return raceSummaries[raceIds[index]]
       })
       // The filtering based on category would be easier if there was a category prop which could be passed to the backend
+      // or pagination for if there is not 5 of the selected category races in the next 10 races allowing the api to skip until there is
       const selectedCategoriesIds = selectedCategories.map(category => {return category.id})
-      const categoySortedRacesArray = racesArray.filter(raceSummary => selectedCategoriesIds.includes(raceSummary?.category_id))
+      const categoySortedRacesArray = racesArray.filter(raceSummary => selectedCategoriesIds.includes(raceSummary?.category_id ?? ""))
       const sortedRacesArray = categoySortedRacesArray.sort((a, b) => (a?.advertised_start.seconds ?? 0) - (b?.advertised_start.seconds ?? 0))
       const filteredRaceArray = sortedRacesArray.filter((raceSummary) => raceSummary !== undefined)
       setDisplayRaces([...filteredRaceArray])
-    } catch (error) {
-      console.log("error", error)
-    }
   }
 
   const renderRaces = () => {
@@ -47,7 +43,7 @@ const Home = () => {
       if (!race) return
       return (
         <RacesCard
-          onMinimumTimeReached={formatDisplayRaceData}
+          onMinimumTimeReached={invalidateRacesData}
           key={index}
           race={race}/>
       )
@@ -56,7 +52,6 @@ const Home = () => {
 
   const categorySelecAction = (selectedCategory: Types.Category, isRemoveFromList: boolean) => {
     if (isRemoveFromList){
-      console.log("this one going?")
       setSelectedCategories([...selectedCategories.filter(category => category.id !== selectedCategory.id)])
     } else {
       setSelectedCategories([...selectedCategories, selectedCategory])
@@ -74,7 +69,9 @@ const Home = () => {
         <CategoryHeader
           onSelect={categorySelecAction}
           selectedCategories={selectedCategories}/>
-        {renderRaces()}
+        <View style={styles.racesContainer}>
+          {renderRaces()}
+        </View>
 
       </View>
     </SafeAreaView>
@@ -98,5 +95,11 @@ const styles = StyleSheet.create({
       fontSize: 30,
       fontWeight: 'bold',
       color: 'white'
+    },
+    racesContainer: {
+      marginTop: 10,
+      backgroundColor: 'white',
+      paddingHorizontal: 8,
+      borderRadius: 10
     }
 })
