@@ -1,12 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
-import racesReducer from './racesSlice';
+import appReducer from './appSlice';
 import API from '../utils/API';
 
 export const store = configureStore({
    
     reducer:{
-        races : racesReducer,
+        app : appReducer,
         [API.reducerPath]: API.reducer,
     },
     devTools: true,

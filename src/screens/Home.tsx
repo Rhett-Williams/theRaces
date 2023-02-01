@@ -7,12 +7,22 @@ import moment from 'moment'
 import { Types } from '../utils/Types'
 import CategoryHeader from '../components/CategoryHeader'
 import { categories } from '../utils/Arrays'
+import { useEntainDispatch } from '../redux/store'
+import { displaySnackbar } from '../redux/appSlice'
 
 const Home = () => {
-  const {data: racesData} = useGetRacesQuery()
+  const {data: racesData, error} = useGetRacesQuery()
   const [invalidateRacesData] = useInvalidateRacesMutation()
   const [displayRaces, setDisplayRaces] = useState<(Types.Summary | undefined)[]>([])
   const [selectedCategories, setSelectedCategories] = useState<Types.Category[]>(categories)
+  const dispatch = useEntainDispatch()
+
+  useEffect(() => {
+    if (error){
+      console.log("error getting data", error)
+      dispatch(displaySnackbar(true))
+    }
+  },[error])
 
   useEffect(() => {
     formatDisplayRaceData()

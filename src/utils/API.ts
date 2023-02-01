@@ -1,14 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { BaseQueryFn, createApi, FetchArgs, fetchBaseQuery, FetchBaseQueryError, retry } from '@reduxjs/toolkit/query/react'
 import {BASE_URL} from '@env'
 
 const baseQuery = fetchBaseQuery({
     baseUrl: BASE_URL,
-    prepareHeaders: async (headers, api) => { 
-        const token = await AsyncStorage.getItem('token')
-        if (token) {
-            headers.set(`Authorization`, `Bearer ${token}`)
-        }
+    prepareHeaders: async (headers, api) => {
         return headers
     },
     credentials: 'include'
