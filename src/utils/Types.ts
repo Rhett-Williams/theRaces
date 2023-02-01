@@ -62,5 +62,10 @@ export namespace Types {
         short_name: string
         icon_uri: string
       }
+
+      export type Category = {
+        name: string,
+        id: string
+      }
       
 }

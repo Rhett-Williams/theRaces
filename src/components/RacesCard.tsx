@@ -8,7 +8,6 @@ import { useInvalidateRacesMutation } from '../services/races'
 type Props = {
     race: Types.Summary
     onMinimumTimeReached: () => void
-    
 }
 
 const RacesCard = ({race, onMinimumTimeReached}: Props) => {
@@ -19,13 +18,23 @@ const RacesCard = ({race, onMinimumTimeReached}: Props) => {
     },[race])
 
     return (
-        <View>
+        <View style={styles.mainContainer}>
+            <View>
+                <Text>{race.meeting_name}</Text>
+                <Text>{race.race_name}</Text>
+            </View>
             <Text>{timer.toString()}</Text>
-            <Text>{race.race_id}</Text>
         </View>
     )
 }
 
 export default RacesCard
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    mainContainer: {
+        flexDirection: 'row',
+        borderTopWidth: 1,
+        justifyContent: 'space-between'
+
+    }
+})

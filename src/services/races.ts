@@ -4,7 +4,7 @@ import { Types } from "../utils/Types";
 const AuthService = API.injectEndpoints({
     endpoints: builder => ({
         getRaces: builder.query<Types.GetRacesData, number | void>({
-            query: (args) => (console.log("surely?"), {
+            query: (args) => ({
                 url: `racing/?method=nextraces&count=${args ?? 10}`,
             }), providesTags: ['Races']
         }),

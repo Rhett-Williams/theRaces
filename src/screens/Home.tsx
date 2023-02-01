@@ -1,27 +1,26 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useGetRacesQuery, useInvalidateRacesMutation, useLazyGetRacesQuery } from '../services/races'
+import { useLazyGetRacesQuery } from '../services/races'
 import RacesCard from '../components/RacesCard'
 import moment from 'moment'
 import { Types } from '../utils/Types'
+import CategoryHeader from '../components/CategoryHeader'
+import { categories } from '../utils/Arrays'
 
 
 const Home = () => {
-  const [getRacesData, {data}] = useLazyGetRacesQuery()
-  const [invalidateRaces] = useInvalidateRacesMutation()
-  const [displayRaces, setDisplayRaces] = useState<Types.Summary[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [getRacesData] = useLazyGetRacesQuery()
+  const [displayRaces, setDisplayRaces] = useState<(Types.Summary | undefined)[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<Types.Category[]>(categories)
 
   useEffect(() => {
     formatDisplayRaceData()
-  },[])
+  },[selectedCategories])
 
   const formatDisplayRaceData = async () => {
-    // setIsLoading(true)
     try {
       const racesData = await getRacesData().unwrap()
-      console.log("the rac", racesData?.data.race_summaries[racesData.data.next_to_go_ids[1]].category_id)
       if (!racesData) return
       const raceSummaries = racesData?.data.race_summaries
       const raceIds = racesData.data.next_to_go_ids
@@ -30,19 +29,22 @@ const Home = () => {
         if (-moment().diff(moment(raceSummaries[raceIds[index]].advertised_start.seconds * 1000), 'seconds') <= -60) return
         return raceSummaries[raceIds[index]]
       })
-      const sortedRacesArray = racesArray.sort((a, b) => (a?.advertised_start.seconds ?? 0) - (b?.advertised_start.seconds ?? 0))
-      const filteredRaceArray = sortedRacesArray.filter((raceSummary, b) => raceSummary !== undefined)
+      // The filtering based on category would be easier if there was a category prop which could be passed to the backend
+      const selectedCategoriesIds = selectedCategories.map(category => {return category.id})
+      const categoySortedRacesArray = racesArray.filter(raceSummary => selectedCategoriesIds.includes(raceSummary?.category_id))
+      const sortedRacesArray = categoySortedRacesArray.sort((a, b) => (a?.advertised_start.seconds ?? 0) - (b?.advertised_start.seconds ?? 0))
+      const filteredRaceArray = sortedRacesArray.filter((raceSummary) => raceSummary !== undefined)
       setDisplayRaces([...filteredRaceArray])
     } catch (error) {
       console.log("error", error)
     }
-    // setIsLoading(false)
   }
 
   const renderRaces = () => {
     if (displayRaces.length === 0) return
     return displayRaces.map((race, index) => {
       if (index > 4) return
+      if (!race) return
       return (
         <RacesCard
           onMinimumTimeReached={formatDisplayRaceData}
@@ -52,19 +54,28 @@ const Home = () => {
     })
   }
 
-// console.log("gamm", racesData?.data.next_to_go_ids)
-//   console.log("akjsdhbajksd", JSON.stringify(racesData?.data.race_summaries[racesData.data.next_to_go_ids[1]].category_id, null, 2))
+  const categorySelecAction = (selectedCategory: Types.Category, isRemoveFromList: boolean) => {
+    if (isRemoveFromList){
+      console.log("this one going?")
+      setSelectedCategories([...selectedCategories.filter(category => category.id !== selectedCategory.id)])
+    } else {
+      setSelectedCategories([...selectedCategories, selectedCategory])
+    }
+  }
 
   return (
     <SafeAreaView
-      style={{backgroundColor: 'green', flex: 1}}
+      style={{backgroundColor: '#d32123', flex: 1}}
       >
       <View style={styles.mainContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.header}>Next to go:</Text>
         </View>
-        {!isLoading && renderRaces()}
-        <Text>{displayRaces[0]?.race_id}</Text>
+        <CategoryHeader
+          onSelect={categorySelecAction}
+          selectedCategories={selectedCategories}/>
+        {renderRaces()}
+
       </View>
     </SafeAreaView>
   )
